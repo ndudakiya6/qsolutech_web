@@ -8,11 +8,19 @@ document.addEventListener("DOMContentLoaded", () => {
     // ============================================================
     // 1. SMOOTH SCROLL ENGINE (LENIS)
     // ============================================================
-    const lenis = new Lenis({
-        duration: 1.4,
-        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    // const lenis = new Lenis({
+    //     duration: 1.4,
+    //     easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    //     smoothWheel: true,
+    //     wheelMultiplier: 0.9
+    // });
+        const lenis = new Lenis({
+        duration: 2,
         smoothWheel: true,
-        wheelMultiplier: 0.9
+        wheelMultiplier: 0.8,
+        touchMultiplier: 1.5,
+        infinite: false,
+        easing: (t) => 1 - Math.pow(1 - t, 4)
     });
     function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
     requestAnimationFrame(raf);
@@ -259,6 +267,13 @@ document.addEventListener("DOMContentLoaded", () => {
         ease: 'power3.out'
     });
 
+    gsap.to(".section-title",{
+        y:-80,
+        scrollTrigger:{
+            trigger:".section-title",
+            scrub:1.5
+        }
+    });
 
     // ============================================================
     // 6. INTERSECTION OBSERVER FOR MOTION REVEALS
