@@ -15,15 +15,15 @@ document.addEventListener("DOMContentLoaded", () => {
     //     wheelMultiplier: 0.9
     // });
         const lenis = new Lenis({
-        duration: 2,
+        duration: 1.2,
         smoothWheel: true,
-        wheelMultiplier: 0.8,
+        wheelMultiplier: 0.85,
         touchMultiplier: 1.5,
         infinite: false,
         easing: (t) => 1 - Math.pow(1 - t, 4)
     });
-    function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
-    requestAnimationFrame(raf);
+    // Use GSAP ticker ONLY — do NOT also use requestAnimationFrame for lenis
+    // This prevents double-ticking which causes jitter and lag
 
     // ============================================================
     // 2. CUSTOM CURSOR
@@ -38,14 +38,13 @@ document.addEventListener("DOMContentLoaded", () => {
     let mouseX = 0, mouseY = 0, followerX = 0, followerY = 0;
     document.addEventListener('mousemove', (e) => {
         mouseX = e.clientX; mouseY = e.clientY;
-        cursor.style.left = mouseX + 'px';
-        cursor.style.top = mouseY + 'px';
+        // Use transform instead of left/top — GPU composited, zero layout cost
+        cursor.style.transform = `translate(${mouseX - 6}px, ${mouseY - 6}px)`;
     });
     function animateFollower() {
         followerX += (mouseX - followerX) * 0.1;
         followerY += (mouseY - followerY) * 0.1;
-        follower.style.left = followerX + 'px';
-        follower.style.top = followerY + 'px';
+        follower.style.transform = `translate(${followerX - 18}px, ${followerY - 18}px)`;
         requestAnimationFrame(animateFollower);
     }
     animateFollower();
@@ -53,10 +52,15 @@ document.addEventListener("DOMContentLoaded", () => {
     // ============================================================
     // 3. NAVIGATION SCROLL STATE
     // ============================================================
+    let scrollTicking = false;
     window.addEventListener('scroll', () => {
-        const nav = document.querySelector('nav');
-        if (nav) {
-            nav.classList.toggle('scrolled', window.scrollY > 80);
+        if (!scrollTicking) {
+            requestAnimationFrame(() => {
+                const nav = document.querySelector('nav');
+                if (nav) nav.classList.toggle('scrolled', window.scrollY > 80);
+                scrollTicking = false;
+            });
+            scrollTicking = true;
         }
     });
 
@@ -70,9 +74,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.z = 6;
 
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // cap at 1.5, not 2
 
     // --- Central Torus Knot (more complex than plain torus) ---
     const torusKnotGeo = new THREE.TorusKnotGeometry(1.4, 0.38, 180, 24, 2, 3);
@@ -101,7 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
     scene.add(ring2);
 
     // --- Deep particle field ---
-    const particleCount = 1200;
+    const particleCount = 700; // reduced from 1200
     const positions = new Float32Array(particleCount * 3);
     const particleSizes = new Float32Array(particleCount);
     for (let i = 0; i < particleCount; i++) {
@@ -117,7 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
     scene.add(particles);
 
     // --- Accent scatter ---
-    const accentCount = 300;
+    const accentCount = 180; // reduced from 300
     const accentPos = new Float32Array(accentCount * 3);
     for (let i = 0; i < accentCount; i++) {
         accentPos[i * 3] = (Math.random() - 0.5) * 14;
@@ -195,10 +199,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // ============================================================
     gsap.registerPlugin(ScrollTrigger);
 
-    // Sync GSAP with Lenis
-    lenis.on('scroll', ScrollTrigger.update);
+    // Correct single Lenis integration via GSAP ticker (no separate RAF loop above)
     gsap.ticker.add((time) => lenis.raf(time * 1000));
     gsap.ticker.lagSmoothing(0);
+    lenis.on('scroll', ScrollTrigger.update);
 
     // Scroll progress bar
     const progressBar = document.createElement('div');
