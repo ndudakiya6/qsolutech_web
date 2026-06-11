@@ -10,7 +10,6 @@
 
     <canvas id="webgl-background"></canvas>
 
-    <!-- NAV -->
     <nav>
         <a href="#home" class="logo-container">
             <svg class="logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -37,8 +36,6 @@
         </ul>
     </nav>
 
-
-    <!-- HERO -->
     <section class="scroll-section hero" id="home">
         <div class="grid-bg"></div>
         <div class="content-box">
@@ -57,25 +54,16 @@
             </div>
         </div>
 
-        <!-- Floating badges -->
         <div class="float-badge" style="right: 12%; top: 30%; animation-delay: 0s;">
             <div class="float-badge-dot"></div>
-            <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted);">500+ Students Trained</span>
+            <span>500+ Students Trained</span>
         </div>
         <div class="float-badge" style="right: 8%; top: 55%; animation-delay: 1.5s; border-color: rgba(112,0,255,0.2);">
             <div class="float-badge-dot" style="background: var(--secondary);"></div>
-            <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted);">98% Success Rate</span>
+            <span>98% Success Rate</span>
         </div>
+    </section>
 
-        <!-- Scroll indicator -->
-        <!-- <div class="scroll-indicator">
-            <div class="scroll-line"></div>
-            <span>scroll</span>
-        </div>
-    </section> -->
-
-
-    <!-- MARQUEE -->
     <div class="marquee-section">
         <div class="marquee-track">
             <div class="marquee-item">React.js <span>◆</span></div>
@@ -87,7 +75,6 @@
             <div class="marquee-item">Java Enterprise <span>◆</span></div>
             <div class="marquee-item">SQL Engine <span>◆</span></div>
             <div class="marquee-item">Git Workflow <span>◆</span></div>
-            <!-- Duplicate for seamless loop -->
             <div class="marquee-item">React.js <span>◆</span></div>
             <div class="marquee-item">Node.js <span>◆</span></div>
             <div class="marquee-item">Python <span>◆</span></div>
@@ -100,8 +87,6 @@
         </div>
     </div>
 
-
-    <!-- STATS -->
     <div class="stats-bar motion-reveal">
         <div class="stat-item">
             <h3 class="counter" data-target="500">0</h3>
@@ -121,8 +106,6 @@
         </div>
     </div>
 
-
-    <!-- ABOUT -->
     <section class="scroll-section" id="about">
         <div class="grid-split">
             <div class="motion-reveal-left">
@@ -164,12 +147,10 @@
         </div>
     </section>
 
-
-    <!-- PROGRAMS -->
     <section class="scroll-section" id="programs">
         <h2 class="section-title motion-reveal char-split">Industrial Internship Tracks</h2>
         <div class="programs-grid">
-            <div class="program-card">
+            <div class="program-card motion-reveal">
                 <div style="width:44px;height:44px;background:rgba(0,255,204,0.08);border:1px solid rgba(0,255,204,0.2);border-radius:4px;display:flex;align-items:center;justify-content:center;margin-bottom:1.5rem;font-size:1.4rem;">⚡</div>
                 <h3 style="font-family:var(--font-display);font-size:1.5rem;font-weight:700;color:var(--primary);margin-bottom:0.8rem;">Web Development Track</h3>
                 <p>Master continuous deployment, architectural state management, and highly scalable reactive user interfaces. Ship production-grade apps.</p>
@@ -185,7 +166,7 @@
                 </div>
             </div>
 
-            <div class="program-card" style="border-color: rgba(112,0,255,0.1);">
+            <div class="program-card motion-reveal" style="border-color: rgba(112,0,255,0.1);">
                 <div style="width:44px;height:44px;background:rgba(112,0,255,0.08);border:1px solid rgba(112,0,255,0.2);border-radius:4px;display:flex;align-items:center;justify-content:center;margin-bottom:1.5rem;font-size:1.4rem;">🔧</div>
                 <h3 style="font-family:var(--font-display);font-size:1.5rem;font-weight:700;color:var(--secondary);margin-bottom:0.8rem;">Software Development Track</h3>
                 <p>Engineered for backend structural scaling, object-oriented design patterns, and robust system logic. Build enterprise-grade software.</p>
@@ -203,24 +184,22 @@
         </div>
     </section>
 
-
-    <!-- ROADMAP -->
     <section class="scroll-section" id="roadmap">
         <h2 class="section-title motion-reveal char-split">The Learning Roadmap</h2>
         <div class="roadmap-container">
-            <div class="roadmap-step">
+            <div class="roadmap-step motion-reveal">
                 <div class="step-dot"></div>
                 <p class="step-number">PHASE_01</p>
                 <h4>Core System Fundamentals</h4>
                 <p>Acquire deep language syntax proficiency, logical flow control, and industrial development environment workspace setups. Build the foundations that everything else rests on.</p>
             </div>
-            <div class="roadmap-step">
+            <div class="roadmap-step motion-reveal">
                 <div class="step-dot"></div>
                 <p class="step-number">PHASE_02</p>
                 <h4>Data Interface Mechanics</h4>
                 <p>Asynchronous data handling, interface rendering loops, database query configurations, and storage mapping strategies. Bridge front-end to back-end with precision.</p>
             </div>
-            <div class="roadmap-step">
+            <div class="roadmap-step motion-reveal">
                 <div class="step-dot"></div>
                 <p class="step-number">PHASE_03</p>
                 <h4>Full Portfolio Production</h4>
@@ -229,8 +208,6 @@
         </div>
     </section>
 
-
-    <!-- APPLY -->
     <section class="scroll-section" id="apply">
         <div class="form-container motion-reveal">
             <h2 class="section-title" style="text-align:left; margin-bottom: 3rem;">Initialize Your <span>Application</span></h2>
@@ -252,8 +229,8 @@
                         <label>Target Track</label>
                         <select id="formTrack" required>
                             <option value="">-- Select Track --</option>
-                            <option value="Web Dev">Web Development Track</option>
-                            <option value="Software Eng">Software Engineering Track</option>
+                            <option value="Web Development Track">Web Development Track</option>
+                            <option value="Software Engineering Track">Software Engineering Track</option>
                         </select>
                     </div>
                     <div class="form-group full-width">
@@ -274,15 +251,11 @@
         </div>
     </section>
 
-
     <footer>
-        <p style="margin-bottom:0.8rem;">
-            <span style="color:var(--primary);">QSolutech</span> — Systems Ecosystem
-        </p>
+        <p style="margin-bottom:0.8rem;"><span style="color:var(--primary);">QSolutech</span> — Systems Ecosystem</p>
         <p>© 2026 Authorized under Project Owner Somil Ravrani. All data channels secured.</p>
     </footer>
 
-    <!-- Floating Emojis -->
     <div class="emoji-float">🚀</div>
     <div class="emoji-float rocket2">⚡</div>
     <div class="emoji-float rocket3">🔥</div>

@@ -6,7 +6,6 @@
     <title>QSolutech | Admin Console</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Admin-specific overrides */
         body { cursor: auto; }
         .cursor, .cursor-follower { display: none; }
 
@@ -30,12 +29,6 @@
             content: '';
             position: absolute; top: 0; left: 0; right: 0; height: 1px;
             background: linear-gradient(90deg, transparent, var(--primary), transparent);
-        }
-        .login-card::after {
-            content: '';
-            position: absolute; inset: 0;
-            background: radial-gradient(ellipse at 50% 0%, rgba(0,255,204,0.04), transparent 60%);
-            pointer-events: none;
         }
         .scan-line {
             position: absolute; top: -100%; left: 0; right: 0; height: 2px;
@@ -91,25 +84,6 @@
             backdrop-filter: blur(20px);
         }
 
-        table { width: 100%; border-collapse: collapse; }
-        thead tr { border-bottom: 1px solid rgba(255,255,255,0.06); }
-        thead th {
-            padding: 1rem 1.2rem;
-            font-family: var(--font-mono);
-            font-size: 0.68rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 700;
-            text-align: left;
-        }
-        tbody tr {
-            border-bottom: 1px solid rgba(255,255,255,0.03);
-            transition: background 0.2s;
-        }
-        tbody tr:hover { background: rgba(255,255,255,0.02); }
-        tbody td { padding: 1.2rem; font-size: 0.92rem; }
-
         .admin-nav {
             display: flex; justify-content: space-between; align-items: center;
             padding: 2rem 5%;
@@ -120,12 +94,49 @@
             backdrop-filter: blur(20px);
             z-index: 100;
         }
+
+        .btn-action {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 2px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.3s;
+        }
+        .btn-validate-only { background: rgba(0, 200, 126, 0.05); color: #00c87e; border-color: rgba(0, 200, 126, 0.15); }
+        .btn-validate-only:hover { background: rgba(0, 200, 126, 0.15); }
+        
+        .btn-validate-mail { background: rgba(0, 255, 204, 0.1); color: var(--primary); border-color: rgba(0, 255, 204, 0.25); font-weight: 700; }
+        .btn-validate-mail:hover { background: rgba(0, 255, 204, 0.2); box-shadow: 0 0 15px rgba(0,255,204,0.1); }
+        
+        .btn-terminate { background: rgba(255, 0, 127, 0.1); color: var(--accent); border-color: rgba(255, 0, 127, 0.2); }
+        .btn-terminate:hover { background: rgba(255, 0, 127, 0.2); }
+
+        .control-group-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        @media(min-width: 769px) {
+            .control-group-cell {
+                flex-direction: row;
+                align-items: center;
+            }
+        }
     </style>
+    
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            // Initialized with your unique verified Public Key
+            emailjs.init("9TumXXSTyUfIZadJL");
+        })();
+    </script>
 </head>
 <body>
     <canvas id="webgl-background"></canvas>
 
-    <!-- LOGIN OVERLAY -->
     <div class="lock-overlay" id="lockOverlay">
         <div class="login-card">
             <div class="scan-line"></div>
@@ -134,7 +145,6 @@
                 <path d="M28 34H72M28 50H56M28 66H72" stroke="#00ffcc" stroke-width="7" stroke-linecap="round"/>
                 <circle cx="68" cy="50" r="7" fill="#ff007f"/>
             </svg>
-
             <h2 style="font-family:var(--font-display);font-size:1.6rem;font-weight:800;margin-bottom:0.4rem;">Control Console</h2>
             <p style="color:var(--text-muted);font-family:var(--font-mono);font-size:0.75rem;letter-spacing:2px;margin-bottom:2.5rem;">AUTHORIZED ACCESS ONLY</p>
 
@@ -149,7 +159,6 @@
         </div>
     </div>
 
-    <!-- ADMIN DASHBOARD -->
     <div class="admin-dashboard-container" id="adminDashboard">
         <div class="admin-nav">
             <div style="display:flex;align-items:center;gap:1rem;">
@@ -177,11 +186,11 @@
             </div>
             <div class="metric-box success">
                 <h5>Validated Profiles</h5>
-                <h2 style="color:#00c87e">0</h2>
+                <h2 id="dash-validated" style="color:#00c87e">0</h2>
             </div>
             <div class="metric-box danger">
                 <h5>Terminated Pipelines</h5>
-                <h2 style="color:var(--accent)">0</h2>
+                <h2 id="dash-rejected" style="color:var(--accent)">0</h2>
             </div>
         </div>
 
@@ -198,10 +207,11 @@
                     <thead>
                         <tr>
                             <th>Applicant</th>
-                            <th>Email</th>
+                            <th>Contact Info</th>
                             <th>Track</th>
                             <th>Institution</th>
                             <th>Resume</th>
+                            <th>Pipeline Control</th>
                         </tr>
                     </thead>
                     <tbody id="applicantsTableBody"></tbody>
@@ -236,30 +246,111 @@
             }
         }
 
+        function openResume(base64Data, filename) {
+            if (!base64Data || base64Data === "null") {
+                alert("Binary stream unavailable or corrupted.");
+                return;
+            }
+            const win = window.open();
+            if (win) {
+                win.document.write(`<title>${filename}</title><embed src="${base64Data}" type="application/pdf" width="100%" height="100%" style="position:fixed;inset:0;border:none;"></embed>`);
+            } else {
+                alert("Pop-up blocked. Permit popups to evaluate documents.");
+            }
+        }
+
+        function processCandidate(id, action) {
+            let applications = JSON.parse(localStorage.getItem('qsolutech_apps')) || [];
+            let valCount = parseInt(localStorage.getItem('qsolutech_val_count')) || 0;
+            let rejCount = parseInt(localStorage.getItem('qsolutech_rej_count')) || 0;
+
+            const index = applications.findIndex(app => app.id === id);
+            if (index === -1) return;
+
+            const candidate = applications[index];
+
+            if (action === 'validate' || action === 'validate_and_mail') {
+                valCount++;
+                localStorage.setItem('qsolutech_val_count', valCount);
+                
+                if (action === 'validate_and_mail') {
+                    // Prepares your specific custom dynamic parameter parameters for transmission
+                    const templateParameters = {
+                        sender_email: "nishitdudakiya9491@gmail.com",
+                        candidate_name: candidate.name,
+                        candidate_email: candidate.email,
+                        candidate_track: candidate.track,
+                        candidate_college: candidate.college
+                    };
+
+                    // Fires completely asynchronous background delivery via verified credentials
+                    emailjs.send("service_6l6qj35", "template_21rjpju", templateParameters)
+                        .then(function(response) {
+                            console.log("Automated background transmission sequence complete.", response.status, response.text);
+                        }, function(error) {
+                            console.error("Transmission infrastructure error routing configuration:", error);
+                        });
+                }
+            } else if (action === 'terminate') {
+                rejCount++;
+                localStorage.setItem('qsolutech_rej_count', rejCount);
+            }
+
+            applications.splice(index, 1);
+            localStorage.setItem('qsolutech_apps', JSON.stringify(applications));
+            renderAdminView();
+        }
+
         function renderAdminView() {
             const tableBody = document.getElementById('applicantsTableBody');
             const dashTotal = document.getElementById('dash-total');
             const dashPending = document.getElementById('dash-pending');
+            const dashVal = document.getElementById('dash-validated');
+            const dashRej = document.getElementById('dash-rejected');
+            
             const applications = JSON.parse(localStorage.getItem('qsolutech_apps')) || [];
+            const valCount = parseInt(localStorage.getItem('qsolutech_val_count')) || 0;
+            const rejCount = parseInt(localStorage.getItem('qsolutech_rej_count')) || 0;
 
-            if (dashTotal) dashTotal.innerText = applications.length;
+            if (dashTotal) dashTotal.innerText = applications.length + valCount + rejCount;
             if (dashPending) dashPending.innerText = applications.length;
+            if (dashVal) dashVal.innerText = valCount;
+            if (dashRej) dashRej.innerText = rejCount;
             if (!tableBody) return;
 
             tableBody.innerHTML = '';
             if (applications.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="5" style="padding:3rem;text-align:center;color:var(--text-muted);font-family:var(--font-mono);font-size:0.8rem;letter-spacing:2px;">[NO APPLICATION PACKETS IN BUFFER]</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="6" style="padding:3rem;text-align:center;color:var(--text-muted);font-family:var(--font-mono);font-size:0.8rem;letter-spacing:2px;">[NO APPLICATION PACKETS IN BUFFER]</td></tr>`;
                 return;
             }
+
             applications.forEach((app, i) => {
                 const row = document.createElement('tr');
                 row.style.animationDelay = `${i * 0.05}s`;
+                
+                const escapedResume = app.resumeData ? app.resumeData.replace(/'/g, "\\'") : "null";
+                const escapedName = app.resumeName.replace(/'/g, "\\'");
+
                 row.innerHTML = `
                     <td style="font-family:var(--font-display);font-weight:700;">${app.name}</td>
-                    <td style="color:var(--text-muted);font-family:var(--font-mono);font-size:0.82rem;">${app.email}</td>
+                    <td style="color:var(--text-muted);font-family:var(--font-mono);font-size:0.82rem;">
+                        <div>${app.email}</div>
+                        <div style="font-size:0.75rem;margin-top:0.2rem;opacity:0.7;">${app.phone}</div>
+                    </td>
                     <td><span style="background:rgba(0,255,204,0.06);border:1px solid rgba(0,255,204,0.15);padding:0.3rem 0.8rem;border-radius:2px;font-family:var(--font-mono);font-size:0.72rem;color:var(--primary);letter-spacing:1px;">${app.track}</span></td>
                     <td style="color:var(--text-muted);font-size:0.88rem;">${app.college}</td>
-                    <td style="font-family:var(--font-mono);font-size:0.78rem;color:var(--primary);">📂 ${app.resumeName}</td>
+                    <td>
+                        <button onclick="openResume('${escapedResume}', '${escapedName}')" style="background:none;border:none;font-family:var(--font-mono);font-size:0.78rem;color:var(--primary);cursor:pointer;text-align:left;padding:0;">
+                            📂 ${app.resumeName}
+                        </button>
+                    </td>
+                    <td>
+                        <div class="control-group-cell">
+                            <button class="btn-action btn-validate-only" onclick="processCandidate(${app.id}, 'validate')" title="Validate profile configuration without sending email">Validate</button>
+                            <button class="btn-action btn-validate-mail" onclick="processCandidate(${app.id}, 'validate_and_mail')" title="Validate profile and cleanly send dynamic template email in the background">Validate & Send Mail</button>
+                            <button class="btn-action btn-terminate" onclick="processCandidate(${app.id}, 'terminate')" title="Drop application thread and increment rejection metrics">Terminate</button>
+                        </div>
+                    </td>
                 `;
                 tableBody.appendChild(row);
             });
@@ -268,6 +359,8 @@
         function clearDatabase() {
             if (confirm("Confirm hard wipe of local storage buffer?")) {
                 localStorage.removeItem('qsolutech_apps');
+                localStorage.setItem('qsolutech_val_count', '0');
+                localStorage.setItem('qsolutech_rej_count', '0');
                 renderAdminView();
             }
         }
